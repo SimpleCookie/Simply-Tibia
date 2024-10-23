@@ -3,7 +3,13 @@ import react from '@vitejs/plugin-react-swc'
 import checker from 'vite-plugin-checker'
 
 export default defineConfig({
-  base: '/simply-tibia/',
+  plugins: [
+    react(),
+    checker({
+      typescript: true,
+    }),
+  ],
+  base: '/Simply-Tibia/',
   server: {
     port: 3000,
     open: true,
@@ -15,12 +21,6 @@ export default defineConfig({
       allow: ['..'],
     },
   },
-  plugins: [
-    react(),
-    checker({
-      typescript: true,
-    }),
-  ],
   build: {
     outDir: 'dist',
   },
