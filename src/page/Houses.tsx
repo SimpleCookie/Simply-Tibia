@@ -2,7 +2,11 @@ import { useState } from "react"
 import { Autocomplete, TextField } from "@mui/material"
 import { useWorlds } from "../hooks/useWorlds"
 import { useAllAuctionedHouses } from "../hooks/useAllAuctionedHouses"
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, GridRenderCellParams } from '@mui/x-data-grid'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import dayjs from "dayjs"
+dayjs.extend(relativeTime)
+
 import './houses.css'
 
 const columns = [
@@ -11,7 +15,12 @@ const columns = [
   { field: 'rent', headerName: 'Rent', width: 80 },
   { field: 'auctioned', headerName: 'Auctioned', width: 100 },
   { field: 'currentBid', headerName: 'Current bid', width: 100 },
-  { field: 'timeLeft', headerName: 'Time left', width: 100 },
+  {
+    field: 'hoursLeft', headerName: 'Time left', width: 100, renderCell: (params: GridRenderCellParams) => {
+      const hours = params.value
+      return <span>{dayjs().to(dayjs().add(hours, 'hour'))}</span>
+    }
+  },
 ]
 
 export const Houses = () => {

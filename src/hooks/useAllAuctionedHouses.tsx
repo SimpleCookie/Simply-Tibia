@@ -11,11 +11,14 @@ interface House {
   town: string
   auctioned: boolean
   currentBid: number
-  timeLeft: string
+  hoursLeft: number
 }
 
-const timeSort = (a: House, b: House): number => {
-  return parseInt(a.timeLeft) < parseInt(b.timeLeft) ? -1 : 1
+const mapToHours = (time: string): number => {
+  if (time.includes("day")) {
+    return parseInt(time) * 24
+  }
+  return parseInt(time)
 }
 
 export const useAllAuctionedHouses = ({ world }: Props) => {
@@ -33,19 +36,17 @@ export const useAllAuctionedHouses = ({ world }: Props) => {
         rent: house.rent,
         auctioned: house.auctioned,
         currentBid: house.auction.current_bid,
-        timeLeft: house.auction.time_left,
+        hoursLeft: mapToHours(house.auction.time_left),
         finished: house.auction.finished,
       }))
-        .filter(house => house.timeLeft)
+        .filter(house => house.hoursLeft)
       return auctionedHouses
     }
     const fetchHouses = async () => {
       const houses = await Promise.all(towns.map(fetchTownHouses))
       const flatHouses = houses.flatMap(house => house.map(house => house))
-      const houseDays = flatHouses.filter(house => house.timeLeft.includes("days")).sort(timeSort)
-      const houseHours = flatHouses.filter(house => house.timeLeft.includes("hours")).sort(timeSort)
 
-      setHouses([...houseHours, ...houseDays])
+      setHouses(flatHouses.sort((a, b) => a.hoursLeft - b.hoursLeft))
     }
 
     fetchHouses()
