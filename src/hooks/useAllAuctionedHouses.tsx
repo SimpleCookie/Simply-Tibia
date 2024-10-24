@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
 import { endpoint, towns } from "../Constants"
-import { HouseApiResponse } from "../DtoTypes/HouseTypes"
+import { HouseApiResponse, HouseDto } from "../DtoTypes/HouseTypes"
 
 interface Props {
   world: string
 }
 interface House {
+  id: number
   name: string
   rent: number
   town: string
@@ -21,36 +22,47 @@ const mapToHours = (time: string): number => {
   return parseInt(time)
 }
 
+const mapHouse = (house: HouseDto, town: string): House => ({
+  id: house.house_id,
+  name: house.name,
+  town,
+  rent: house.rent,
+  auctioned: house.auctioned,
+  currentBid: house.auction.current_bid,
+  hoursLeft: mapToHours(house.auction.time_left),
+})
+
 export const useAllAuctionedHouses = ({ world }: Props) => {
   const [houses, setHouses] = useState<House[]>([])
+  const [guildHalls, setGuildHalls] = useState<House[]>([])
 
   useEffect(() => {
     const fetchTownHouses = async (town: string) => {
+      console.log("town", town)
       const res = await fetch(endpoint.houses(world, town))
       const data = await res.json() as HouseApiResponse
-      if (!data.houses) return []
-      const auctionedHouses = data.houses.house_list.map(house => ({
-        id: house.name,
-        name: house.name,
-        town: town,
-        rent: house.rent,
-        auctioned: house.auctioned,
-        currentBid: house.auction.current_bid,
-        hoursLeft: mapToHours(house.auction.time_left),
-        finished: house.auction.finished,
-      }))
+      if (!data.houses) return Promise.resolve({ auctionedHouses: [], auctionedGuildHalls: [] })
+      const auctionedHouses = data.houses.house_list.map(h => mapHouse(h, town))
         .filter(house => house.hoursLeft)
-      return auctionedHouses
+
+      const auctionedGuildHalls = data.houses.guildhall_list?.map(h => mapHouse(h, town))
+        .filter(house => house.hoursLeft) ?? []
+
+      return { auctionedHouses, auctionedGuildHalls } as const
     }
+
     const fetchHouses = async () => {
       const houses = await Promise.all(towns.map(fetchTownHouses))
-      const flatHouses = houses.flatMap(house => house.map(house => house))
+
+      const flatHouses = houses.flatMap(townHouse => townHouse.auctionedHouses.map(house => house))
+      const flatGuildHalls = houses.flatMap(townHouse => townHouse.auctionedGuildHalls.map(house => house))
 
       setHouses(flatHouses.sort((a, b) => a.hoursLeft - b.hoursLeft))
+      setGuildHalls(flatGuildHalls.sort((a, b) => a.hoursLeft - b.hoursLeft))
     }
 
     fetchHouses()
   }, [world])
 
-  return houses
+  return [houses, guildHalls] as const
 }

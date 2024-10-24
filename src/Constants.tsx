@@ -6,6 +6,7 @@ export enum Pages {
 const baseUrl = "https://api.tibiadata.com"
 export const endpoint = {
   houses: (world: string, town: string) => `${baseUrl}/v4/houses/${world}/${town}`,
+  house: (world: string, houseId: number) => `${baseUrl}/v4/house/${world}/${houseId}`,
   worlds: () => `${baseUrl}/v4/worlds`,
 }
 

@@ -8,20 +8,7 @@ import dayjs from "dayjs"
 dayjs.extend(relativeTime)
 
 import './houses.css'
-
-const columns = [
-  { field: 'name', headerName: 'name', width: 275 },
-  { field: 'town', headerName: 'town', width: 150 },
-  { field: 'rent', headerName: 'Rent', width: 80 },
-  { field: 'auctioned', headerName: 'Auctioned', width: 100 },
-  { field: 'currentBid', headerName: 'Current bid', width: 100 },
-  {
-    field: 'hoursLeft', headerName: 'Time left', width: 100, renderCell: (params: GridRenderCellParams) => {
-      const hours = params.value
-      return <span>{dayjs().to(dayjs().add(hours, 'hour'))}</span>
-    }
-  },
-]
+import { BidHolder } from "./BidHolder"
 
 export const Houses = () => {
   const worlds = useWorlds()
@@ -29,25 +16,47 @@ export const Houses = () => {
     world: "Bravoria",
     town: "ab'dendriel",
   })
-  const houses = useAllAuctionedHouses({ world: filter.world })
+  const [houses, guildHalls] = useAllAuctionedHouses({ world: filter.world })
+
+  const columns = [
+    { field: 'name', headerName: 'Name', width: 260 },
+    { field: 'town', headerName: 'Town', width: 105 },
+    {
+      field: 'rent', headerName: 'Rent', width: 80, renderCell: (params: GridRenderCellParams) => {
+        const rent = params.value
+        return <span>{rent.toLocaleString()}</span>
+      }
+    },
+    { field: 'currentBid', headerName: 'bid', width: 90 },
+    {
+      field: 'hoursLeft', headerName: 'Time left', width: 100, renderCell: (params: GridRenderCellParams) => {
+        const hours = params.value
+        return <span>{dayjs().to(dayjs().add(hours, 'hour'))}</span>
+      }
+    },
+    {
+      field: 'id', headerName: 'Bidder', width: 200, renderCell: (params: GridRenderCellParams) => {
+        const houseId = params.value
+        return <BidHolder houseId={houseId} world={filter.world} />
+      }
+    },
+  ]
 
   return <div>
     <h1>Houses</h1>
-    <div>
-      <i>Select your world</i>
-      <Autocomplete
-        disablePortal
-        options={worlds}
-        sx={{ width: 300 }}
-        defaultValue={filter.world}
-        onChange={(_event, value) => setFilter({ ...filter, world: value ?? filter.world })}
-        renderInput={(params) => <TextField {...params} label={filter.world} />}
-      />
-    </div>
+    <Autocomplete
+      disablePortal
+      options={worlds}
+      sx={{ width: 300 }}
+      defaultValue={filter.world}
+      onChange={(_event, value) => setFilter({ ...filter, world: value ?? filter.world })}
+      renderInput={(params) => <TextField {...params} label={filter.world} />}
+    />
 
-    <p>Currently active auctions</p>
-    <div>
-      <DataGrid rows={houses} columns={columns} />
-    </div>
+    <h2>Guild hall auctions</h2>
+    <DataGrid rows={guildHalls} columns={columns} />
+
+    <h2>House auctions</h2>
+    <DataGrid rows={houses} columns={columns} />
   </div>
 }
