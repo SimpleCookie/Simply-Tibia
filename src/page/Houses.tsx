@@ -34,8 +34,10 @@ export const Houses = () => {
       }
     },
     {
-      field: 'hoursLeft', headerName: 'Time left', width: 100, renderCell: (params: GridRenderCellParams) => {
+      field: 'hoursLeft', headerName: 'Time left', width: 160, renderCell: (params: GridRenderCellParams) => {
         const hours = params.value
+        const content = dayjs().to(dayjs().add(hours, 'hour'))
+        if (content === "a few seconds ago") return <span>Ending now</span>
         return <span>{dayjs().to(dayjs().add(hours, 'hour'))}</span>
       }
     },

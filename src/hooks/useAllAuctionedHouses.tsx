@@ -38,15 +38,14 @@ export const useAllAuctionedHouses = ({ world }: Props) => {
 
   useEffect(() => {
     const fetchTownHouses = async (town: string) => {
-      console.log("town", town)
       const res = await fetch(endpoint.houses(world, town))
       const data = await res.json() as HouseApiResponse
       if (!data.houses) return Promise.resolve({ auctionedHouses: [], auctionedGuildHalls: [] })
-      const auctionedHouses = data.houses.house_list.map(h => mapHouse(h, town))
-        .filter(house => house.hoursLeft)
+      const auctionedHouses = data.houses.house_list.filter(h => h.auction.time_left !== "").map(h => mapHouse(h, town)) ?? []
 
-      const auctionedGuildHalls = data.houses.guildhall_list?.map(h => mapHouse(h, town))
-        .filter(house => house.hoursLeft) ?? []
+      const auctionedGuildHalls = data.houses.guildhall_list?.filter(h => h.auction.time_left !== "").map(h => {
+        return mapHouse(h, town)
+      }) ?? []
 
       return { auctionedHouses, auctionedGuildHalls } as const
     }
