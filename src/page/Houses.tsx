@@ -27,7 +27,12 @@ export const Houses = () => {
         return <span>{rent.toLocaleString()}</span>
       }
     },
-    { field: 'currentBid', headerName: 'bid', width: 90 },
+    {
+      field: 'currentBid', headerName: 'bid', width: 90, renderCell: (params: GridRenderCellParams) => {
+        const bid = params.value
+        return <span>{bid.toLocaleString()}</span>
+      }
+    },
     {
       field: 'hoursLeft', headerName: 'Time left', width: 100, renderCell: (params: GridRenderCellParams) => {
         const hours = params.value
